@@ -1,1 +1,118 @@
-
+{
+  "name": "Assistente de Investimentos RPA e n8n - MVP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "analise-investimentos",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "id": "webhook-trigger-01",
+      "name": "Webhook de Entrada"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.pergunta || 'Analise o perfil de risco moderado para o ativo PETR4.' }}",
+        "options": {
+          "systemMessage": "Você é um assistente sênior de investimentos e analista financeiro RPA. Sua função é receber dados de ativos ou perfis de investidores e devolver uma recomendação clara, objetiva, apontando riscos, perspectivas e alinhamento com o perfil informado."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        460,
+        300
+      ],
+      "id": "ai-agent-01",
+      "name": "AI Agent Analista"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        460,
+        500
+      ],
+      "id": "openai-model-01",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "SUA_CREDENTIAL_ID",
+          "name": "OpenAI Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"sucesso\",\n  \"analise\": \"{{ $json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        780,
+        300
+      ],
+      "id": "respond-webhook-01",
+      "name": "Responder Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook de Entrada": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Analista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Analista": {
+      "main": [
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Analista",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dio-investments-mvp"
+  }
+}
